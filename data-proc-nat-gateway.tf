@@ -96,6 +96,12 @@ resource "yandex_resourcemanager_folder_iam_member" "dataproc-sa-role-dataproc-a
   member    = "serviceAccount:${yandex_iam_service_account.dataproc-sa.id}"
 }
 
+resource "yandex_resourcemanager_folder_iam_member" "dataproc-sa-role-dataproc-provisioner" {
+  folder_id = local.folder_id
+  role      = "dataproc.provisioner"
+  member    = "serviceAccount:${yandex_iam_service_account.dataproc-sa.id}"
+}
+
 resource "yandex_iam_service_account_static_access_key" "sa-static-key" {
   description        = "Static access key for Object Storage"
   service_account_id = yandex_iam_service_account.dataproc-sa.id
