@@ -1,7 +1,7 @@
-# Infrastructure for Yandex Data Proc cluster with NAT gateway
+# Infrastructure for Yandex Data Processing cluster with NAT gateway
 #
 # RU: https://cloud.yandex.ru/docs/data-proc/tutorials/configure-network
-# EN: https://cloud.yandex.com/en-ru/docs/data-proc/tutorials/configure-network
+# EN: https://cloud.yandex.com/en/docs/data-proc/tutorials/configure-network
 
 
 # Specify the following settings:
@@ -12,7 +12,7 @@ locals {
 }
 
 resource "yandex_vpc_network" "data-proc-network" {
-  description = "Network for the Data Proc cluster"
+  description = "Network for the Yandex Data Processing cluster"
   name        = "data-proc-network"
 }
 
@@ -33,7 +33,7 @@ resource "yandex_vpc_route_table" "route-table-nat" {
 }
 
 resource "yandex_vpc_subnet" "data-proc-subnet" {
-  description    = "Subnet for the Data Proc cluster"
+  description    = "Subnet for the Yandex Data Processing cluster"
   name           = "data-proc-subnet"
   network_id     = yandex_vpc_network.data-proc-network.id
   v4_cidr_blocks = ["192.168.1.0/24"]
@@ -115,7 +115,7 @@ resource "yandex_storage_bucket" "obj-storage-bucket" {
 }
 
 resource "yandex_dataproc_cluster" "dataproc-cluster" {
-  description        = "Yandex Data Proc cluster"
+  description        = "Yandex Data Processing cluster"
   name               = "dataproc-cluster"
   service_account_id = yandex_iam_service_account.dataproc-sa.id
   zone_id            = "ru-central1-a"
