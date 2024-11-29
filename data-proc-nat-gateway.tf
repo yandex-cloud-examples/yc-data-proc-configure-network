@@ -54,7 +54,7 @@ resource "yandex_vpc_security_group" "data-proc-security-group" {
   }
 
   ingress {
-    description       = "Allow any traffic within the security group"
+    description       = "Allow any incoming traffic within the security group"
     protocol          = "ANY"
     from_port         = 0
     to_port           = 65535
@@ -62,7 +62,7 @@ resource "yandex_vpc_security_group" "data-proc-security-group" {
   }
 
   egress {
-    description       = "Allow any traffic within the security group"
+    description       = "Allow any outgoing traffic within the security group"
     protocol          = "ANY"
     from_port         = 0
     to_port           = 65535
@@ -109,6 +109,10 @@ resource "yandex_iam_service_account_static_access_key" "sa-static-key" {
 
 # Use keys to create a bucket
 resource "yandex_storage_bucket" "obj-storage-bucket" {
+  depends_on = [
+    yandex_resourcemanager_folder_iam_member.sa-editor
+  ]
+
   access_key = yandex_iam_service_account_static_access_key.sa-static-key.access_key
   secret_key = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
   bucket     = local.bucket
@@ -125,11 +129,16 @@ resource "yandex_dataproc_cluster" "dataproc-cluster" {
     yandex_vpc_security_group.data-proc-security-group.id
   ]
 
+  depends_on = [
+    yandex_resourcemanager_folder_iam_member.dataproc-sa-role-dataproc-provisioner,
+    yandex_resourcemanager_folder_iam_member.dataproc-sa-role-dataproc-agent
+  ]
+
   cluster_config {
     hadoop {
       services = ["HDFS", "YARN", "SPARK", "TEZ", "MAPREDUCE", "HIVE"]
       ssh_public_keys = [
-        file(local.path_to_ssh_public_key)
+        "${file(local.path_to_ssh_public_key)}"
       ]
     }
 
