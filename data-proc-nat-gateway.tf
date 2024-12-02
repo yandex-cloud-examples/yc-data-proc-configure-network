@@ -77,17 +77,23 @@ resource "yandex_vpc_security_group" "data-proc-security-group" {
   }
 }
 
-# Create a service account
+# Create a service account for Data Processing cluster
 resource "yandex_iam_service_account" "dataproc-sa" {
   folder_id = local.folder_id
   name      = "data-proc-sa"
 }
 
-# Grant permissions to the service account
-resource "yandex_resourcemanager_folder_iam_member" "sa-editor" {
+# Create a service account for S3 Bucket
+resource "yandex_iam_service_account" "bucket-sa" {
   folder_id = local.folder_id
-  role      = "storage.editor"
-  member    = "serviceAccount:${yandex_iam_service_account.dataproc-sa.id}"
+  name      = "bucket-sa"
+}
+
+# Grant permissions to the service account
+resource "yandex_resourcemanager_folder_iam_member" "sa-admin" {
+  folder_id = local.folder_id
+  role      = "storage.admin"
+  member    = "serviceAccount:${yandex_iam_service_account.bucket-sa.id}"
 }
 
 resource "yandex_resourcemanager_folder_iam_member" "dataproc-sa-role-dataproc-agent" {
@@ -104,14 +110,20 @@ resource "yandex_resourcemanager_folder_iam_member" "dataproc-sa-role-dataproc-p
 
 resource "yandex_iam_service_account_static_access_key" "sa-static-key" {
   description        = "Static access key for Object Storage"
-  service_account_id = yandex_iam_service_account.dataproc-sa.id
+  service_account_id = yandex_iam_service_account.bucket-sa.id
 }
 
 # Use keys to create a bucket
 resource "yandex_storage_bucket" "obj-storage-bucket" {
   depends_on = [
-    yandex_resourcemanager_folder_iam_member.sa-editor
+    yandex_resourcemanager_folder_iam_member.sa-admin
   ]
+
+  grant {
+    id          = yandex_iam_service_account.dataproc-sa.id
+    type        = "CanonicalUser"
+    permissions = ["READ","WRITE"]
+  }
 
   access_key = yandex_iam_service_account_static_access_key.sa-static-key.access_key
   secret_key = yandex_iam_service_account_static_access_key.sa-static-key.secret_key
