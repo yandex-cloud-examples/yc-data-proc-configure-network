@@ -133,6 +133,7 @@ resource "yandex_storage_bucket" "obj-storage-bucket" {
 resource "yandex_dataproc_cluster" "dataproc-cluster" {
   description        = "Yandex Data Processing cluster"
   name               = "dataproc-cluster"
+  environment        = "PRODUCTION"
   service_account_id = yandex_iam_service_account.dataproc-sa.id
   zone_id            = "ru-central1-a"
   bucket             = local.bucket
